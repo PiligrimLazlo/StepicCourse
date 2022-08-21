@@ -5,11 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
-import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import ru.pl.composition.R
-import ru.pl.composition.databinding.FragmentGameBinding
 import ru.pl.composition.databinding.FragmentGameFinishedBinding
 import ru.pl.composition.domain.entity.GameResult
 
@@ -19,9 +17,7 @@ class GameFinishedFragment : Fragment() {
 
     private var _binding: FragmentGameFinishedBinding? = null
     private val binding: FragmentGameFinishedBinding
-        get() = checkNotNull(_binding) {
-            getString(R.string.binding_null_error)
-        }
+        get() = _binding ?: throw RuntimeException("FragmentGameFinishedBinding == null")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,14 +34,26 @@ class GameFinishedFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupClickListeners()
+        binding.gameResult = gameResult
+    }
 
+    private fun setupClickListeners() {
         val callback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 retryGame()
             }
         }
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, callback)
-        binding.buttonRetry.setOnClickListener { retryGame() }
+        binding.buttonRetry.setOnClickListener {
+            retryGame()
+        }
+    }
+
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     private fun parseArgs() {
@@ -61,23 +69,16 @@ class GameFinishedFragment : Fragment() {
         )
     }
 
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-
     companion object {
 
-        private const val KEY_GAME_RESULT = "KEY_RESULT"
+        private const val KEY_GAME_RESULT = "game_result"
 
         fun newInstance(gameResult: GameResult): GameFinishedFragment {
             return GameFinishedFragment().apply {
-                arguments = bundleOf(
-                    KEY_GAME_RESULT to gameResult
-                )
+                arguments = Bundle().apply {
+                    putParcelable(KEY_GAME_RESULT, gameResult)
+                }
             }
         }
-
     }
 }
