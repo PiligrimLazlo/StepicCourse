@@ -24,17 +24,15 @@ class ShopItemFragment : Fragment() {
 
     private lateinit var viewModel: ShopItemViewModel
 
-    private lateinit var tilName: TextInputLayout
-    private lateinit var tilCount: TextInputLayout
-    private lateinit var etName: EditText
-    private lateinit var etCount: EditText
-    private lateinit var buttonSave: Button
-
     private var screenMode: String = MODE_UNKNOWN
     private var shopItemId: Int = ShopItem.UNDEFINED_ID
     private lateinit var onEditingFinishListener: OnEditingFinishListener
 
-    private lateinit var binding: FragmentShopItemBinding
+    private var _binding: FragmentShopItemBinding? = null
+    private val binding
+        get() = checkNotNull(_binding) {
+            "Binding is null"
+        }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -58,8 +56,7 @@ class ShopItemFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         Log.d(TAG, "onCreateView()")
-        binding = FragmentShopItemBinding.inflate(inflater, container, false)
-        binding.lifecycleOwner = viewLifecycleOwner
+        _binding = FragmentShopItemBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -67,7 +64,8 @@ class ShopItemFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         Log.d(TAG, "onViewCreated()")
         viewModel = ViewModelProvider(this)[ShopItemViewModel::class.java]
-        initViews(view)
+        binding.itemViewModel = viewModel
+        binding.lifecycleOwner = viewLifecycleOwner
         addTextChangeListeners()
         launchRightMode()
         observeViewModel()
@@ -111,26 +109,28 @@ class ShopItemFragment : Fragment() {
 
     private fun launchEditMode() {
         viewModel.getShopItem(shopItemId)
-        /*viewModel.shopItemLD.observe(viewLifecycleOwner) {
-            etName.setText(it.name)
-            etCount.setText(it.count.toString())
-        }*/
-        buttonSave.setOnClickListener {
-            viewModel.editShopItem(etName.text?.toString(), etCount.text?.toString())
+        binding.saveButton.setOnClickListener {
+            viewModel.editShopItem(
+                binding.etName.text.toString(),
+                binding.etCount.text.toString()
+            )
         }
     }
 
     private fun launchAddMode() {
-        buttonSave.setOnClickListener {
-            viewModel.addShopItem(etName.text.toString(), etCount.text.toString())
+        binding.saveButton.setOnClickListener {
+            viewModel.addShopItem(
+                binding.etName.text.toString(),
+                binding.etCount.text.toString()
+            )
         }
     }
 
     private fun addTextChangeListeners() {
-        etName.doOnTextChanged { text, start, before, count ->
+        binding.etName.doOnTextChanged { text, start, before, count ->
             viewModel.resetErrorInputName()
         }
-        etCount.doOnTextChanged { text, start, before, count ->
+        binding.etCount.doOnTextChanged { text, start, before, count ->
             viewModel.resetErrorInputCount()
         }
     }
@@ -143,14 +143,6 @@ class ShopItemFragment : Fragment() {
     }
 
     private fun observeViewModel() {
-        viewModel.errorInputName.observe(viewLifecycleOwner) {
-            val message = if (it) getString(R.string.error_input_name) else null
-            tilName.error = message
-        }
-        viewModel.errorInputCount.observe(viewLifecycleOwner) {
-            val message = if (it) getString(R.string.error_input_count) else null
-            tilCount.error = message
-        }
         viewModel.shouldCloseScreen.observe(viewLifecycleOwner) {
             onEditingFinishListener.onEditingFinished()
         }
@@ -170,14 +162,6 @@ class ShopItemFragment : Fragment() {
             }
             shopItemId = args.getInt(EXTRA_SHOP_ITEM_ID, ShopItem.UNDEFINED_ID)
         }
-    }
-
-    private fun initViews(view: View) {
-        tilName = view.findViewById(R.id.til_name)
-        tilCount = view.findViewById(R.id.til_count)
-        etName = view.findViewById(R.id.et_name)
-        etCount = view.findViewById(R.id.et_count)
-        buttonSave = view.findViewById(R.id.save_button)
     }
 
     interface OnEditingFinishListener {
