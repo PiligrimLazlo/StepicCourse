@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.textfield.TextInputLayout
 import ru.pl.shoppinglist.R
+import ru.pl.shoppinglist.databinding.FragmentShopItemBinding
 import ru.pl.shoppinglist.domain.ShopItem
 
 private const val TAG = "ShopItemFragmentTag"
@@ -32,6 +33,8 @@ class ShopItemFragment : Fragment() {
     private var screenMode: String = MODE_UNKNOWN
     private var shopItemId: Int = ShopItem.UNDEFINED_ID
     private lateinit var onEditingFinishListener: OnEditingFinishListener
+
+    private lateinit var binding: FragmentShopItemBinding
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -53,9 +56,11 @@ class ShopItemFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         Log.d(TAG, "onCreateView()")
-        return inflater.inflate(R.layout.fragment_shop_item, container, false)
+        binding = FragmentShopItemBinding.inflate(inflater, container, false)
+        binding.lifecycleOwner = viewLifecycleOwner
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -106,10 +111,10 @@ class ShopItemFragment : Fragment() {
 
     private fun launchEditMode() {
         viewModel.getShopItem(shopItemId)
-        viewModel.shopItemLD.observe(viewLifecycleOwner) {
+        /*viewModel.shopItemLD.observe(viewLifecycleOwner) {
             etName.setText(it.name)
             etCount.setText(it.count.toString())
-        }
+        }*/
         buttonSave.setOnClickListener {
             viewModel.editShopItem(etName.text?.toString(), etCount.text?.toString())
         }
