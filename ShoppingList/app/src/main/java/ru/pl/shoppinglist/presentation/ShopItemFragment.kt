@@ -15,12 +15,17 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.textfield.TextInputLayout
 import ru.pl.shoppinglist.R
+import ru.pl.shoppinglist.ShopListApplication
 import ru.pl.shoppinglist.databinding.FragmentShopItemBinding
 import ru.pl.shoppinglist.domain.ShopItem
+import javax.inject.Inject
 
 private const val TAG = "ShopItemFragmentTag"
 
 class ShopItemFragment : Fragment() {
+
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
 
     private lateinit var viewModel: ShopItemViewModel
 
@@ -34,7 +39,12 @@ class ShopItemFragment : Fragment() {
             "Binding is null"
         }
 
+    private val component by lazy {
+        (requireActivity().application as ShopListApplication).component
+    }
+
     override fun onAttach(context: Context) {
+        component.inject(this)
         super.onAttach(context)
         if (context is OnEditingFinishListener) {
             onEditingFinishListener = context
@@ -63,7 +73,7 @@ class ShopItemFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         Log.d(TAG, "onViewCreated()")
-        viewModel = ViewModelProvider(this)[ShopItemViewModel::class.java]
+        viewModel = ViewModelProvider(this, viewModelFactory)[ShopItemViewModel::class.java]
         binding.itemViewModel = viewModel
         binding.lifecycleOwner = viewLifecycleOwner
         addTextChangeListeners()

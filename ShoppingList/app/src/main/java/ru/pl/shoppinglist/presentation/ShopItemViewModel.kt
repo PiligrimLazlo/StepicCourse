@@ -11,14 +11,14 @@ import ru.pl.shoppinglist.domain.AddShopItemUseCase
 import ru.pl.shoppinglist.domain.EditShopItemUseCase
 import ru.pl.shoppinglist.domain.GetShopItemUseCase
 import ru.pl.shoppinglist.domain.ShopItem
+import javax.inject.Inject
 
-class ShopItemViewModel(application: Application) : AndroidViewModel(application) {
+class ShopItemViewModel @Inject constructor(
+    private val getShopItemUseCase: GetShopItemUseCase,
+    private val addShopItemUseCase: AddShopItemUseCase,
+    private val editShopItemUseCase: EditShopItemUseCase
+    ) : ViewModel() {
 
-    private val repository = ShopListRepositoryImpl(application)
-
-    private val getShopItemUseCase = GetShopItemUseCase(repository)
-    private val addShopItemUseCase = AddShopItemUseCase(repository)
-    private val editShopItemUseCase = EditShopItemUseCase(repository)
 
     private val _errorInputName = MutableLiveData<Boolean>()
     val errorInputName: LiveData<Boolean>

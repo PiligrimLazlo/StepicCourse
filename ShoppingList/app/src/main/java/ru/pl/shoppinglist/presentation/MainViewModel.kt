@@ -13,14 +13,14 @@ import ru.pl.shoppinglist.domain.DeleteShopItemUseCase
 import ru.pl.shoppinglist.domain.EditShopItemUseCase
 import ru.pl.shoppinglist.domain.GetShopListUseCase
 import ru.pl.shoppinglist.domain.ShopItem
+import javax.inject.Inject
 
-class MainViewModel(application: Application): AndroidViewModel(application) {
+class MainViewModel @Inject constructor(
+    private val getShopListUseCase: GetShopListUseCase,
+    private val deleteShopItemUseCase: DeleteShopItemUseCase,
+    private val editShopItemUseCase: EditShopItemUseCase
+) : ViewModel() {
 
-    private val repository = ShopListRepositoryImpl(application)
-
-    private val getShopListUseCase = GetShopListUseCase(repository)
-    private val deleteShopItemUseCase = DeleteShopItemUseCase(repository)
-    private val editShopItemUseCase = EditShopItemUseCase(repository)
 
     val shopList = getShopListUseCase.getShopList()
 
