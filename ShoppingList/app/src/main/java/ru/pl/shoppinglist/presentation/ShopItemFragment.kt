@@ -1,7 +1,9 @@
 package ru.pl.shoppinglist.presentation
 
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -19,6 +21,7 @@ import ru.pl.shoppinglist.ShopListApplication
 import ru.pl.shoppinglist.databinding.FragmentShopItemBinding
 import ru.pl.shoppinglist.domain.ShopItem
 import javax.inject.Inject
+import kotlin.concurrent.thread
 
 private const val TAG = "ShopItemFragmentTag"
 
@@ -120,19 +123,51 @@ class ShopItemFragment : Fragment() {
     private fun launchEditMode() {
         viewModel.getShopItem(shopItemId)
         binding.saveButton.setOnClickListener {
-            viewModel.editShopItem(
-                binding.etName.text.toString(),
-                binding.etCount.text.toString()
-            )
+//            viewModel.editShopItem(
+//                binding.etName.text.toString(),
+//                binding.etCount.text.toString()
+//            )
+
+            //пример update() с ShopListProvider
+            var enabled = true
+            viewModel.shopItemLD.observe(viewLifecycleOwner) {
+                enabled = it.enabled
+            }
+            thread {
+                context?.contentResolver?.update(
+                    Uri.parse("content://ru.pl.shoppinglist/shop_items"),
+                    ContentValues().apply {
+                        put("id", shopItemId)
+                        put("name", binding.etName.text.toString())
+                        put("count", binding.etCount.text.toString().toInt())
+                        put("enabled", enabled)
+                    },
+                    null,
+                    null
+                )
+            }
+
         }
     }
 
     private fun launchAddMode() {
         binding.saveButton.setOnClickListener {
-            viewModel.addShopItem(
-                binding.etName.text.toString(),
-                binding.etCount.text.toString()
-            )
+//            viewModel.addShopItem(
+//                binding.etName.text.toString(),
+//                binding.etCount.text.toString()
+//            )
+            thread {
+                //пример вставки (insert()) через ShopListProvider
+                context?.contentResolver?.insert(
+                    Uri.parse("content://ru.pl.shoppinglist/shop_items"),
+                    ContentValues().apply {
+                        put("id", 0)
+                        put("name", binding.etName.text.toString())
+                        put("count", binding.etCount.text.toString().toInt())
+                        put("enabled", true)
+                    }
+                )
+            }
         }
     }
 

@@ -1,5 +1,6 @@
 package ru.pl.shoppinglist.presentation
 
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -15,7 +16,9 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import ru.pl.shoppinglist.R
 import ru.pl.shoppinglist.ShopListApplication
 import ru.pl.shoppinglist.databinding.ActivityMainBinding
+import ru.pl.shoppinglist.domain.ShopItem
 import javax.inject.Inject
+import kotlin.concurrent.thread
 
 class MainActivity : AppCompatActivity(), ShopItemFragment.OnEditingFinishListener {
 
@@ -44,17 +47,44 @@ class MainActivity : AppCompatActivity(), ShopItemFragment.OnEditingFinishListen
             shopListAdapter.submitList(it)
         }
 
-            binding.buttonAddShopItem.apply {
-                    setOnClickListener {
-                        if (isOnePaneMode()) {
-                            val intent = ShopItemActivity.newIntentAddItem(this@MainActivity)
-                            startActivity(intent)
-                        } else {
-                            launchFragment(ShopItemFragment.newInstanceAddItem())
-                        }
-                    }
+        binding.buttonAddShopItem.apply {
+            setOnClickListener {
+                if (isOnePaneMode()) {
+                    val intent = ShopItemActivity.newIntentAddItem(this@MainActivity)
+                    startActivity(intent)
+                } else {
+                    launchFragment(ShopItemFragment.newInstanceAddItem())
                 }
-        Log.d("MainActivityTAG","onCreate called")
+            }
+        }
+        Log.d("MainActivityTAG", "onCreate called")
+
+
+        thread {
+            //пример запроса к ShopListProvider
+            val cursor = contentResolver.query(
+                Uri.parse("content://ru.pl.shoppinglist/shop_items"),
+                null,
+                null,
+                null,
+                null,
+                null
+            )
+            while (cursor?.moveToNext() == true) {
+                val id = cursor.getInt(cursor.getColumnIndexOrThrow("id"))
+                val name = cursor.getString(cursor.getColumnIndexOrThrow("name"))
+                val count = cursor.getInt(cursor.getColumnIndexOrThrow("count"))
+                val enabled = cursor.getInt(cursor.getColumnIndexOrThrow("enabled")) > 0
+                val shopItem = ShopItem(
+                    id = id,
+                    name = name,
+                    count = count,
+                    enabled = enabled
+                )
+                Log.d("MainActivityTag", shopItem.toString())
+            }
+            cursor?.close()
+        }
     }
 
     override fun onEditingFinished() {
@@ -106,7 +136,16 @@ class MainActivity : AppCompatActivity(), ShopItemFragment.OnEditingFinishListen
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val item = shopListAdapter.currentList[viewHolder.adapterPosition]
-                viewModel.deleteShopItem(item)
+//                viewModel.deleteShopItem(item)
+
+                thread {
+                    //пример delete() с помощью ShopListProvider
+                    contentResolver.delete(
+                        Uri.parse("content://ru.pl.shoppinglist/shop_items"),
+                        null,
+                        arrayOf(item.id.toString())
+                    )
+                }
             }
         }
         val itemTouchHelper = ItemTouchHelper(callback)
