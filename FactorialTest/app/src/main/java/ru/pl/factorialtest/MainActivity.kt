@@ -23,31 +23,31 @@ class MainActivity : AppCompatActivity() {
 
         observeViewModel()
         binding.buttonCalculate.setOnClickListener {
-            viewModel.calculateFactorial(binding.editTextNumber.text.toString())
+            viewModel.calculate(binding.editTextNumber.text.toString())
         }
     }
 
     private fun observeViewModel() {
-        viewModel.progress.observe(this) { progressShowing ->
-            if (progressShowing) {
-                binding.progressBarLoading.visibility = View.VISIBLE
-                binding.buttonCalculate.isEnabled = false
-            } else {
-                binding.progressBarLoading.visibility = View.GONE
-                binding.buttonCalculate.isEnabled = true
+        viewModel.state.observe(this) { state ->
+            binding.progressBarLoading.visibility = View.GONE
+            binding.buttonCalculate.isEnabled = true
+
+            when (state) {
+                is Error -> {
+                    Toast.makeText(
+                        this,
+                        "You did not entered value",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                is Progress -> {
+                    binding.progressBarLoading.visibility = View.VISIBLE
+                    binding.buttonCalculate.isEnabled = false
+                }
+                is Factorial -> {
+                    binding.textViewFactorial.text = state.value
+                }
             }
-        }
-        viewModel.error.observe(this) { errorOccurred ->
-            if (errorOccurred) {
-                Toast.makeText(
-                    this,
-                    "You did not entered value",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
-        viewModel.factorial.observe(this) { factorialValue ->
-            binding.textViewFactorial.text = factorialValue
         }
     }
 }
