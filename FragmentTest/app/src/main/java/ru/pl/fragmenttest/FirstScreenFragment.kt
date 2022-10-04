@@ -34,7 +34,7 @@ class FirstScreenFragment : Fragment() {
                 val text = et.text.toString()
                 parentFragmentManager
                     .beginTransaction()
-                    .add(R.id.fragment_container ,SecondScreenFragment.createInstance(text))
+                    .replace(R.id.fragment_container ,SecondScreenFragment.createInstance(text))
                     .addToBackStack(null)
                     .commit()
             }
